@@ -1,7 +1,7 @@
 import React from 'react';
 import HeroCover from './components/HeroCover';
-import AlertsPanel from './components/AlertsPanel';
 import DigitalTwinMap from './components/DigitalTwinMap';
+import AlertsPanel from './components/AlertsPanel';
 import TrendPanel from './components/TrendPanel';
 
 export default function App() {

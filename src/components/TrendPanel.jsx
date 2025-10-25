@@ -1,40 +1,100 @@
 import React, { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
-function Line({ points, color = '#34d399', width = 2 }) {
-  const d = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p[0].toFixed(2)} ${p[1].toFixed(2)}`)
-    .join(' ');
-  return <path d={d} fill="none" stroke={color} strokeWidth={width} strokeLinecap="round" />;
-}
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 export default function TrendPanel() {
-  // Synthetic sample data representing 14 days
-  const data = useMemo(() => {
-    const days = Array.from({ length: 14 }, (_, i) => i);
-    const soilMoisture = days.map((d) => 28 + Math.sin(d / 2) * 6 + (d > 8 ? -2 : 0));
-    const humidity = days.map((d) => 70 + Math.cos(d / 3) * 10 + (d > 9 ? 8 : 0));
-    const pestRisk = days.map((d) => Math.max(5, Math.min(95, 20 + d * 4 + (humidity[d] > 80 ? 8 : 0) - (soilMoisture[d] > 30 ? 6 : 0))));
-    return { days, soilMoisture, humidity, pestRisk };
+  const { labels, soilMoisture, humidity, pestRisk } = useMemo(() => {
+    const days = Array.from({ length: 14 }, (_, i) => i + 1);
+    const sm = days.map((d) => 28 + Math.sin(d / 2) * 6 + (d > 8 ? -2 : 0));
+    const hu = days.map((d) => 70 + Math.cos(d / 3) * 10 + (d > 9 ? 8 : 0));
+    const pr = days.map((d, i) => Math.max(5, Math.min(95, 15 + i * 4 + (hu[i] > 80 ? 8 : 0) - (sm[i] > 30 ? 6 : 0))));
+    return { labels: days.map((d) => `Day ${d}`), soilMoisture: sm, humidity: hu, pestRisk: pr };
   }, []);
 
-  const chart = useMemo(() => {
-    const W = 920;
-    const H = 260;
-    const P = 28;
-    const x = (i) => P + (i * (W - P * 2)) / (data.days.length - 1);
-    const yScale = (min, max) => (v) => P + (H - P * 2) - ((v - min) * (H - P * 2)) / (max - min || 1);
+  const data = useMemo(() => ({
+    labels,
+    datasets: [
+      {
+        label: 'Soil Moisture (%)',
+        data: soilMoisture,
+        borderColor: '#38bdf8',
+        backgroundColor: 'rgba(56, 189, 248, 0.25)',
+        tension: 0.35,
+        yAxisID: 'y1',
+        pointRadius: 2,
+      },
+      {
+        label: 'Humidity (%)',
+        data: humidity,
+        borderColor: '#22d3ee',
+        backgroundColor: 'rgba(34, 211, 238, 0.25)',
+        tension: 0.35,
+        yAxisID: 'y1',
+        pointRadius: 2,
+      },
+      {
+        label: 'Pest Risk (pred %)',
+        data: pestRisk,
+        borderColor: '#f472b6',
+        backgroundColor: 'rgba(244, 114, 182, 0.2)',
+        tension: 0.35,
+        yAxisID: 'y2',
+        pointRadius: 2,
+      },
+    ],
+  }), [labels, soilMoisture, humidity, pestRisk]);
 
-    const y1 = yScale(20, 40); // soil moisture
-    const y2 = yScale(60, 95); // humidity
-    const y3 = yScale(0, 100); // pest risk
-
-    const smPoints = data.days.map((d, i) => [x(i), y1(data.soilMoisture[i])]);
-    const huPoints = data.days.map((d, i) => [x(i), y2(data.humidity[i])]);
-    const prPoints = data.days.map((d, i) => [x(i), y3(data.pestRisk[i])]);
-
-    return { W, H, P, smPoints, huPoints, prPoints };
-  }, [data]);
+  const options = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        labels: { color: '#d1d5db', boxWidth: 12, usePointStyle: true },
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          labelColor: (ctx) => ({ borderColor: ctx.dataset.borderColor, backgroundColor: ctx.dataset.borderColor }),
+        },
+      },
+    },
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      x: {
+        ticks: { color: '#9ca3af', maxRotation: 0 },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+      },
+      y1: {
+        type: 'linear',
+        position: 'left',
+        min: 20,
+        max: 100,
+        ticks: { color: '#9ca3af' },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+      },
+      y2: {
+        type: 'linear',
+        position: 'right',
+        min: 0,
+        max: 100,
+        ticks: { color: '#9ca3af' },
+        grid: { drawOnChartArea: false },
+      },
+    },
+  }), []);
 
   return (
     <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5">
@@ -48,37 +108,8 @@ export default function TrendPanel() {
 
       <div className="p-4">
         <div className="text-sm text-white/80 mb-2">Zone Insights (last 14 days)</div>
-        <div className="relative">
-          <svg width="100%" viewBox={`0 0 ${chart.W} ${chart.H}`} className="block">
-            <defs>
-              <linearGradient id="gridFade" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopOpacity="0.2" stopColor="#ffffff" />
-                <stop offset="100%" stopOpacity="0.05" stopColor="#ffffff" />
-              </linearGradient>
-            </defs>
-            <rect x="0" y="0" width={chart.W} height={chart.H} fill="transparent" />
-
-            {Array.from({ length: 6 }).map((_, i) => {
-              const y = chart.P + (i * (chart.H - chart.P * 2)) / 5;
-              return <line key={i} x1={chart.P} x2={chart.W - chart.P} y1={y} y2={y} stroke="url(#gridFade)" strokeWidth="1" />;
-            })}
-
-            <Line points={chart.smPoints} color="#38bdf8" width={2.5} />
-            <Line points={chart.huPoints} color="#22d3ee" width={2.5} />
-            <Line points={chart.prPoints} color="#f472b6" width={2.5} />
-          </svg>
-
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-xs">
-            <div className="flex items-center gap-2 text-white/80">
-              <span className="inline-block h-2 w-6 rounded bg-sky-400" /> Soil Moisture
-            </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <span className="inline-block h-2 w-6 rounded bg-cyan-400" /> Humidity
-            </div>
-            <div className="flex items-center gap-2 text-white/80">
-              <span className="inline-block h-2 w-6 rounded bg-pink-400" /> Pest Risk (pred)
-            </div>
-          </div>
+        <div className="relative h-[300px]">
+          <Line data={data} options={options} />
         </div>
       </div>
     </div>

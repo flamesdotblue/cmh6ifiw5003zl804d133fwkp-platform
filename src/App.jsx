@@ -1,28 +1,48 @@
-import { useState } from 'react'
+import React from 'react';
+import HeroCover from './components/HeroCover';
+import AlertsPanel from './components/AlertsPanel';
+import DigitalTwinMap from './components/DigitalTwinMap';
+import TrendPanel from './components/TrendPanel';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
+    <div className="min-h-screen bg-black text-white font-inter">
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-black/50 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-md bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.5)]" />
+            <span className="text-lg font-semibold tracking-wide">Cultiverse</span>
+          </div>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-white/70">
+            <a href="#twin" className="hover:text-white">Digital Twin</a>
+            <a href="#alerts" className="hover:text-white">Alerts</a>
+            <a href="#trends" className="hover:text-white">Trends</a>
+          </nav>
         </div>
-      </div>
-    </div>
-  )
-}
+      </header>
 
-export default App
+      <main>
+        <HeroCover />
+
+        <section id="twin" className="max-w-7xl mx-auto px-4 py-10 md:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <DigitalTwinMap />
+            </div>
+            <div id="alerts" className="lg:col-span-1">
+              <AlertsPanel />
+            </div>
+          </div>
+        </section>
+
+        <section id="trends" className="max-w-7xl mx-auto px-4 pb-14">
+          <TrendPanel />
+        </section>
+      </main>
+
+      <footer className="border-t border-white/10 py-8 text-center text-xs text-white/60">
+        © {new Date().getFullYear()} Cultiverse — Multi-Modal, Spatio-Temporal AI for Predictive Agriculture
+      </footer>
+    </div>
+  );
+}

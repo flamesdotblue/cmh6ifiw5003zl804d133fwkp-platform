@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Polygon, Marker, Popup, ScaleControl } from 'r
 import L from 'leaflet';
 import { MapPin } from 'lucide-react';
 
-// Fix default marker icons for Leaflet in bundlers
 const DefaultIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -16,7 +15,7 @@ const DefaultIcon = new L.Icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const center = [19.076, 72.877]; // Mumbai region (demo)
+const center = [19.076, 72.877];
 
 const zones = [
   {
@@ -58,7 +57,7 @@ const zones = [
 ];
 
 const sensors = [
-  { id: 'S-01', label: 'Soil Moisture', value: '31%', pos: [19.080, 72.874] },
+  { id: 'S-01', label: 'Soil Moisture', value: '31%', pos: [19.08, 72.874] },
   { id: 'S-02', label: 'Air Temp', value: '33°C', pos: [19.086, 72.878] },
   { id: 'S-03', label: 'Humidity', value: '91%', pos: [19.069, 72.879] },
 ];
